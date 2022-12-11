@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -29,22 +30,19 @@ var todoList []TodoItem
 
 func (tc TodoController) Create(w http.ResponseWriter, r *http.Request) {
 
-	body := make([]byte, r.ContentLength)
-	r.Body.Read(body)
-	var todoRequest TodoRequest
-	json.Unmarshal(body, &todoRequest)
-
-	fmt.Printf("CREATE")
-	fmt.Printf(todoRequest.Title)
+	// 参考：https://blog.logrocket.com/how-to-make-http-post-request-with-json-body-in-go/
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var todo TodoRequest
+	json.Unmarshal(reqBody, &todo)
+	json.NewEncoder(w).Encode(todo)
+	fmt.Println(string(todo.Title))
 
 	todoList = append(todoList, TodoItem{
 		Id: uuid.New(),
-		Title: todoRequest.Title,
-		Content: todoRequest.Content,
+		Title: todo.Title,
+		Content: todo.Content,
 		CreatedAt: time.Now(),
 	})
-
-	fmt.Fprintf(w, "作成")
 
 }
 
@@ -54,6 +52,7 @@ func (tc TodoController) GetById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (tc TodoController) GetAll(w http.ResponseWriter, r *http.Request) {
+
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	if err := enc.Encode(&todoList); err != nil {
