@@ -2,41 +2,48 @@ package handler
 
 import (
 	"fmt"
+	"go-firestore/controller"
 	"net/http"
 )
 
-type TodoHandler interface {
-	todoByIdRequestHandler(w http.ResponseWriter, r *http.Request)
-	getTodosHandler(w http.ResponseWriter, r *http.Request)
-	createTodoHandler(w http.ResponseWriter, r *http.Request)
+func Serve() {
+	http.HandleFunc("/todo", todoCreateHandler)
+ 	http.HandleFunc("/todos", todosHandler)
+ 	http.HandleFunc("/todo/{id}", todoIdHandler)
 }
 
 // 詳細
-func todoByIdRequestHandler(w http.ResponseWriter, r *http.Request) {
+func todoIdHandler (w http.ResponseWriter, r *http.Request) {
+	var tc controller.TodoController
+
 	switch r.Method {
 		case "GET":
-			// controllers.getTodoById(w, r)
+			tc.GetById(w, r)
 		case "DELETE":
-			// deleteTodoById(w, r)
+			tc.Delete(w, r)
 		case "PUT":
-			// editTodoById(w, r)
+			tc.Update(w, r)
 		default:
-				http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 	}
 }
 
 // 全件取得
-func getTodosHandler(w http.ResponseWriter, r *http.Request){
-	if r.Method != http.MethodPost {
-		fmt.Fprintf(w, "HTTPメソッドはPOSTにしてね!!雑魚!!")
+func todosHandler(w http.ResponseWriter, r *http.Request) {
+	var tc controller.TodoController
+	if r.Method != http.MethodGet {
+		fmt.Fprintf(w, "HTTPメソッドはGETにしてね!!雑魚!!")
 		return
 	}
+	tc.GetAll(w, r)
 }
 
 // 作成
-func createTodoHandler(w http.ResponseWriter, r *http.Request) {
+func todoCreateHandler(w http.ResponseWriter, r *http.Request) {
+	var tc controller.TodoController
 	if r.Method != http.MethodPost {
 		fmt.Fprintf(w, "HTTPメソッドはPOSTにしてね!!雑魚!!")
 		return
 	}
+	tc.Create(w, r)
 }
